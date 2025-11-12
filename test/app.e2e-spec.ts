@@ -5,6 +5,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import pactum from 'pactum';
 import { IRegister } from 'src/auth/validators/types';
 import { UserStatus } from '@prisma/client';
+import { ICreateBook } from 'src/books/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -83,7 +84,6 @@ describe('App e2e', () => {
           .post('/auth/login')
           .withBody(registerPayload)
           .expectStatus(HttpStatus.OK)
-          .inspect()
           .stores('token', 'token');
       });
     });
@@ -148,5 +148,74 @@ describe('App e2e', () => {
     });
   });
 
-  describe('Book', () => {});
+  describe('Book', () => {
+    let newBook: ICreateBook = {
+      title: 'The art of not overthinking',
+      description: 'This is a sample description of the book creation.',
+      quantity: 4,
+      created_by: '$S{userid}',
+    };
+    describe('Create a new Book', () => {
+      it('should fail creating the book if no title is provided', () => {
+        return pactum
+          .spec()
+          .post('/books')
+          .withHeaders({ Authorization: 'Bearer $S{token}' })
+          .withBody({})
+          .expectStatus(400);
+      });
+      it('should fail creating the book if the quantity is not number', () => {
+        return pactum
+          .spec()
+          .post('/books')
+          .withHeaders({ Authorization: 'Bearer $S{token}' })
+          .withBody({ ...newBook, quantity: 'abcd' })
+          .expectStatus(400);
+      });
+      it('should create a book successfully on a valid', () => {
+        return pactum
+          .spec()
+          .post('/books')
+          .withHeaders({ Authorization: 'Bearer $S{token}' })
+          .withBody(newBook)
+          .expectStatus(201);
+      });
+    });
+
+    describe('Get Books', () => {
+      it('should fetch the all the books', () => {
+        return pactum
+          .spec()
+          .get('/books')
+          .withHeaders({ Authorization: 'Bearer $S{token}' })
+          .expectStatus(200)
+          .stores('bookId', 'data[0].id');
+      });
+      it('should fail in fetching the book if the provided id is not found', () => {
+        return pactum
+          .spec()
+          .get('/books/unknown-id')
+          .withHeaders({ Authorization: 'Bearer $S{token}' })
+          .expectStatus(404);
+      });
+      it('should fetch the book details by id', () => {
+        return pactum
+          .spec()
+          .get('/books/$S{bookId}')
+          .withHeaders({ Authorization: 'Bearer $S{token}' })
+          .expectStatus(200);
+      });
+    });
+
+    describe('Edit a Book', () => {
+      it('should fail creating the book if no title is provided', () => {
+        return pactum
+          .spec()
+          .patch('/books/$S{bookId}')
+          .withHeaders({ Authorization: 'Bearer $S{token}' })
+          .withBody({ title: 'Jack & Jones' })
+          .expectStatus(200);
+      });
+    });
+  });
 });

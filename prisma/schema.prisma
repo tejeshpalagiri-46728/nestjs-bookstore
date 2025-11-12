@@ -40,7 +40,7 @@ model Book {
 
   title       String
   description String?
-  quantity    BigInt
+  quantity    Int
 
   created_by String
   user       User   @relation(fields: [created_by], references: [id])
