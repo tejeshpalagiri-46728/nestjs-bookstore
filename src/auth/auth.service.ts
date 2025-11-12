@@ -19,55 +19,45 @@ export class AuthService {
   ) {}
 
   async login(data: ILogin) {
-    try {
-      const user = await this.getUserByEmail(data.email, {});
-      if (!user) {
-        throw new NotFoundException('Incorrect credentials provided');
-      }
-      const isUserLegit = await argon.verify(user.hash, data.password);
-      if (!isUserLegit) {
-        throw new UnauthorizedException('Incorrect credentials provided');
-      }
-      const sessionToken = await this.signToken(user.id, user.email);
-      return {
-        success: true,
-        data: user,
-        token: sessionToken,
-      };
-    } catch (error) {
-      throw error;
+    const user = await this.getUserByEmail(data.email, {});
+    if (!user) {
+      throw new NotFoundException('Incorrect credentials provided');
     }
+    const isUserLegit = await argon.verify(user.hash, data.password);
+    if (!isUserLegit) {
+      throw new UnauthorizedException('Incorrect credentials provided');
+    }
+    const sessionToken = await this.signToken(user.id, user.email);
+    return {
+      success: true,
+      data: user,
+      token: sessionToken,
+    };
   }
 
   async register(data: IRegister) {
-    try {
-      const userExists = await this.getUserByEmail(data.email);
-      if (userExists) {
-        throw new ForbiddenException(
-          'User with the given email already exists',
-        );
-      }
-      const user = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        hash: await argon.hash(data.password),
-      };
-
-      const savedUser = await this._prismaService.user.create({
-        data: user,
-        omit: {
-          hash: true,
-        },
-      });
-      return {
-        success: true,
-        message: 'Registered Successfully',
-        user: savedUser,
-      };
-    } catch (error) {
-      throw error;
+    const userExists = await this.getUserByEmail(data.email);
+    if (userExists) {
+      throw new ForbiddenException('User with the given email already exists');
     }
+    const user = {
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: data.email,
+      hash: await argon.hash(data.password),
+    };
+
+    const savedUser = await this._prismaService.user.create({
+      data: user,
+      omit: {
+        hash: true,
+      },
+    });
+    return {
+      success: true,
+      message: 'Registered Successfully',
+      user: savedUser,
+    };
   }
 
   async me(userId: string) {
@@ -81,7 +71,10 @@ export class AuthService {
     };
   }
 
-  async getUserById(userId: string, omit: any = { hash: true }) {
+  async getUserById(
+    userId: string,
+    omit: Record<string, boolean> = { hash: true },
+  ) {
     return this._prismaService.user.findUnique({
       where: {
         id: userId,
@@ -90,7 +83,10 @@ export class AuthService {
     });
   }
 
-  async getUserByEmail(email: string, omit: any = { hash: true }) {
+  async getUserByEmail(
+    email: string,
+    omit: Record<string, boolean> = { hash: true },
+  ) {
     return await this._prismaService.user.findUnique({
       where: {
         email: email,
@@ -110,9 +106,5 @@ export class AuthService {
         expiresIn: this._configService.get('JWT_EXPIRY'),
       },
     );
-  }
-
-  async verifyToken(token: string) {
-    return this._jwtService.verify(token);
   }
 }

@@ -14,14 +14,14 @@ describe('App e2e', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
-    app = await moduleRef.createNestApplication();
+    app = moduleRef.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
       }),
     );
     await app.init();
-    app.listen(3333);
+    await app.listen(3333);
 
     prisma = app.get(PrismaService);
     await prisma.cleanDB();
@@ -122,7 +122,7 @@ describe('App e2e', () => {
     describe('Update User', () => {
       describe('Edit User', () => {
         it('should edit the user successfully', () => {
-          let user = {
+          const user = {
             first_name: 'TEJESH',
             last_name: 'P',
             status: UserStatus.ACTIVE,
@@ -149,7 +149,7 @@ describe('App e2e', () => {
   });
 
   describe('Book', () => {
-    let newBook: ICreateBook = {
+    const newBook: ICreateBook = {
       title: 'The art of not overthinking',
       description: 'This is a sample description of the book creation.',
       quantity: 4,

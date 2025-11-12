@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ICreateBook, IEditBook } from './dto';
 
@@ -15,7 +15,7 @@ export class BooksService {
   }
 
   async getBookById(id: string) {
-    let book = await this._prismaService.book.findUnique({
+    const book = await this._prismaService.book.findUnique({
       where: {
         id,
       },
