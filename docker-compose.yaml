@@ -1,0 +1,23 @@
+services:
+  dev-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bookstore
+    ports:
+      - '5432:5432'
+    networks:
+      - bookstore-network
+  test-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bookstore
+    ports:
+      - '5433:5432'
+    networks:
+      - bookstore-network
+networks:
+  bookstore-network:
