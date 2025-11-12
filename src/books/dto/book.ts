@@ -25,6 +25,6 @@ export class IEditBook {
   description: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumber()
   quantity: number;
 }
